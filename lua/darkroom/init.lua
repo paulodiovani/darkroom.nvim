@@ -189,7 +189,8 @@ function M.cmd(position, command, replace)
         vim.cmd(dest_window .. ' wincmd c')
       end
 
-      vim.cmd('vert ' .. position .. ' ' .. range .. command)
+      local splitpos = position == 'left' and 'topleft' or 'botright'
+      vim.cmd('vert ' .. splitpos .. ' ' .. range .. command)
       -- must refresh winnr because windows may have changed
       dest_window = get_dest_window(position)
       vim.cmd('vert ' .. dest_window .. ' resize ' .. M.get_darkroom_width())
