@@ -10,14 +10,18 @@ M.config = {
   highlight = 'DarkRoomNormal', -- highlight group name used by darkroom
   darken_percent = 25,          -- percent to darken the bg color in darkroom side windows
   min_columns = 130,            -- minimum number of columns for the main/center window
-  win_options = {                -- window params for darkroom windows
+  win_options = {               -- window params for darkroom windows
     buftype = 'nofile',
     filetype = 'darkroom',
     bufhidden = 'wipe',
     modifiable = false,
     buflisted = false,
     swapfile = false,
-  }
+  },
+  edgy_win_options = {                     -- edgy window options
+    winbar = false,                        -- do not show winbar
+    winhighlight = "Normal:DarkRoomNormal" -- highlight group name used by darkroom
+  },
 }
 
 -- Local state
@@ -128,24 +132,24 @@ end
 
 -- Split window at the given position and set win highlight
 local function split_window(position)
+  local config = vim.deepcopy(M.config)
   local width = M.get_darkroom_width()
 
   if width <= 0 then
     return
   end
 
-  local buf = vim.fn.bufadd(M.config.bufname)
-  local win = vim.api.nvim_open_win(buf, true, {
-    split = position,
-    width = width,
-  })
-  -- Apply window parameters from the table
-  for option, value in pairs(M.config.win_options) do
+  -- set position in bufname and filetype
+  config.bufname = config.bufname:gsub('__$', position .. '__')
+  config.win_options.filetype = config.win_options.filetype .. position
+
+  local buf = vim.fn.bufadd(config.bufname)
+  vim.api.nvim_open_win(buf, false, { split = position })
+
+  -- Apply window options
+  for option, value in pairs(config.win_options) do
     vim.api.nvim_set_option_value(option, value, { scope = 'local', buf = buf })
   end
-
-  set_window_bg()
-  vim.cmd('wincmd p')
 end
 
 -- Toggle darkroom to use a smaller viewport
@@ -177,7 +181,6 @@ end
 -- Runs a command on the specified darkroom window
 function M.cmd(position, command, replace)
   replace = replace or false
-  local width = M.get_darkroom_width()
   local dest_window = get_dest_window(position)
 
   local range = ""
@@ -265,6 +268,24 @@ function M.setup(opts)
   if not vim.fn.hasmapto('<Plug>DarkRoomToggle') then
     vim.api.nvim_set_keymap('n', '<Leader><BS>', ':DarkRoomToggle<CR>', { noremap = false, silent = true })
   end
+
+  -- setup edgy.nvim
+  require("edgy").setup({
+    left = {
+      {
+        ft = "darkroomleft",
+        size = { width = M.get_darkroom_width },
+        wo = M.config.edgy_win_options
+      },
+    },
+    right = {
+      {
+        ft = "darkroomright",
+        size = { width = M.get_darkroom_width },
+        wo = M.config.edgy_win_options
+      },
+    },
+  })
 end
 
 return M
