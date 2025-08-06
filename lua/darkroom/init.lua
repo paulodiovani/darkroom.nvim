@@ -6,12 +6,18 @@ local M = {}
 
 -- Default configuration
 M.config = {
-  bufname = '__darkroom__',                                                                                                                                                                    -- buffer name used in darkroom side windows
-  highlight = 'DarkRoomNormal',                                                                                                                                                                -- highlight group name used by darkroom
-  darken_percent = 25,                                                                                                                                                                         -- percent to darken the bg color in darkroom side windows
-  min_columns = 130,                                                                                                                                                                           -- minimum number of columns for the main/center window
-  win_params =
-  'buftype=nofile filetype=darkroom bufhidden=wipe nomodifiable nobuflisted noswapfile nocursorline nocursorcolumn nonumber norelativenumber noruler nolist noshowmode noshowcmd'              -- window params
+  bufname = '__darkroom__',     -- buffer name used in darkroom side windows
+  highlight = 'DarkRoomNormal', -- highlight group name used by darkroom
+  darken_percent = 25,          -- percent to darken the bg color in darkroom side windows
+  min_columns = 130,            -- minimum number of columns for the main/center window
+  win_params = {                -- window params
+    buftype = 'nofile',
+    filetype = 'darkroom',
+    bufhidden = 'wipe',
+    modifiable = false,
+    buflisted = false,
+    swapfile = false,
+  }
 }
 
 -- Local state
@@ -133,9 +139,9 @@ local function split_window(position)
     split = position,
     width = width,
   })
-  -- Parse win_params and apply them
-  for option, value in string.gmatch(M.config.win_params, "(%w+)=(%w+)") do
-    vim.api.nvim_win_set_option(win, option, value)
+  -- Apply window parameters from the table
+  for option, value in pairs(M.config.win_params) do
+    vim.api.nvim_set_option_value(option, value, { scope = 'local', buf = buf })
   end
 
   set_window_bg()
