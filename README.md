@@ -1,4 +1,4 @@
-# vim-darkroom
+# darkroom.nvim
 
 A Neovim plugin that simulates a dark room by creating darkened side windows, keeping your focus on the centered window.
 
