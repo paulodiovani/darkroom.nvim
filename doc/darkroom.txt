@@ -60,8 +60,8 @@ behavior. Default values are shown below.
     -- Minimum number of columns for the main/center window
     min_columns = 130,
     
-    -- Window parameters for side panels
-    win_params = {
+    -- Window options for side panels
+    win_options = {
       buftype = 'nofile',
       filetype = 'darkroom',
       bufhidden = 'wipe',

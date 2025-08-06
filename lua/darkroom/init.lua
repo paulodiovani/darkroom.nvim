@@ -10,7 +10,7 @@ M.config = {
   highlight = 'DarkRoomNormal', -- highlight group name used by darkroom
   darken_percent = 25,          -- percent to darken the bg color in darkroom side windows
   min_columns = 130,            -- minimum number of columns for the main/center window
-  win_params = {                -- window params
+  win_options = {                -- window params for darkroom windows
     buftype = 'nofile',
     filetype = 'darkroom',
     bufhidden = 'wipe',
@@ -140,7 +140,7 @@ local function split_window(position)
     width = width,
   })
   -- Apply window parameters from the table
-  for option, value in pairs(M.config.win_params) do
+  for option, value in pairs(M.config.win_options) do
     vim.api.nvim_set_option_value(option, value, { scope = 'local', buf = buf })
   end
 
