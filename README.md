@@ -106,8 +106,14 @@ require('darkroom').setup({
   min_columns = 130,
 
   -- Window parameters for side panels
-  win_params = 'buftype=nofile filetype=darkroom bufhidden=wipe nomodifiable nobuflisted noswapfile nocursorline nocursorcolumn nonumber norelativenumber noruler nolist noshowmode noshowcmd'
-})
+  win_params = {
+    buftype = 'nofile',
+    filetype = 'darkroom',
+    bufhidden = 'wipe',
+    modifiable = false,
+    buflisted = false,
+    swapfile = false,
+  }
 ```
 
 ### Recommended Vim Settings
