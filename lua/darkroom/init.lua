@@ -6,11 +6,18 @@ local M = {}
 
 -- Default configuration
 M.config = {
-  bufname = '__darkroom__',          -- buffer name used in darkroom side windows
-  highlight = 'DarkRoomNormal',      -- highlight group name used by darkroom
-  darken_percent = 25,               -- percent to darken the bg color in darkroom side windows
-  min_columns = 130,                 -- minimum number of columns for the main/center window
-  win_params = 'buftype=nofile filetype=darkroom bufhidden=wipe nomodifiable nobuflisted noswapfile nocursorline nocursorcolumn nonumber norelativenumber noruler nolist noshowmode noshowcmd'  -- window params
+  bufname = '__darkroom__',     -- buffer name used in darkroom side windows
+  highlight = 'DarkRoomNormal', -- highlight group name used by darkroom
+  darken_percent = 25,          -- percent to darken the bg color in darkroom side windows
+  min_columns = 130,            -- minimum number of columns for the main/center window
+  win_params = {                -- window params
+    buftype = 'nofile',
+    filetype = 'darkroom',
+    bufhidden = 'wipe',
+    modifiable = false,
+    buflisted = false,
+    swapfile = false,
+  }
 }
 
 -- Local state
@@ -27,14 +34,14 @@ local function is_darkroom_window(window)
   local buffer = vim.fn.bufname(vim.fn.winbufnr(window))
   local window_width = vim.fn.winwidth(window)
   local darkroom_width = M.get_darkroom_width()
-  
+
   return string.find(buffer, M.config.bufname) ~= nil or window_width == darkroom_width
 end
 
 local function get_dest_window(position)
-  if position == 'topleft' then
+  if position == 'left' then
     return 1
-  else -- botright
+  else -- right
     return vim.fn.winnr('$')
   end
 end
@@ -99,12 +106,12 @@ function M.darken_color(hex, percent)
   local r = tonumber(string.sub(hex, 2, 3), 16)
   local g = tonumber(string.sub(hex, 4, 5), 16)
   local b = tonumber(string.sub(hex, 6, 7), 16)
-  
+
   local factor = 1 - (percent / 100.0)
   r = math.max(0, math.floor(r * factor))
   g = math.max(0, math.floor(g * factor))
   b = math.max(0, math.floor(b * factor))
-  
+
   return string.format("#%02x%02x%02x", r, g, b)
 end
 
@@ -122,12 +129,21 @@ end
 -- Split window at the given position and set win highlight
 local function split_window(position)
   local width = M.get_darkroom_width()
-  
+
   if width <= 0 then
     return
   end
-  
-  vim.cmd('vert ' .. position .. ' ' .. width .. 'sview +setlocal\\ ' .. M.config.win_params .. ' ' .. M.config.bufname)
+
+  local buf = vim.fn.bufadd(M.config.bufname)
+  local win = vim.api.nvim_open_win(buf, true, {
+    split = position,
+    width = width,
+  })
+  -- Apply window parameters from the table
+  for option, value in pairs(M.config.win_params) do
+    vim.api.nvim_set_option_value(option, value, { scope = 'local', buf = buf })
+  end
+
   set_window_bg()
   vim.cmd('wincmd p')
 end
@@ -141,19 +157,19 @@ function M.toggle()
       local focus_window = M.get_windows('nondarkroom')[1]
       vim.cmd(focus_window .. 'wincmd w')
     end
-    
+
     -- close darkroom windows (in reverse bc of win numbers)
     local darkroom_windows = M.get_windows('darkroom')
     for i = #darkroom_windows, 1, -1 do
       vim.cmd(darkroom_windows[i] .. ' wincmd c')
     end
   else
-    if not is_darkroom_window(1) then 
-      split_window('topleft') 
+    if not is_darkroom_window(1) then
+      split_window('left')
     end
-    
-    if not is_darkroom_window(vim.fn.winnr('$')) then 
-      split_window('botright') 
+
+    if not is_darkroom_window(vim.fn.winnr('$')) then
+      split_window('right')
     end
   end
 end
@@ -175,20 +191,21 @@ function M.cmd(position, command, replace)
   local ok, err = pcall(function()
     if replace == true then
       -- close darkroom window first, if exists
-      if is_darkroom_window(dest_window) then 
-        vim.cmd(dest_window .. ' wincmd c') 
+      if is_darkroom_window(dest_window) then
+        vim.cmd(dest_window .. ' wincmd c')
       end
-      
-      vim.cmd('vert ' .. position .. ' ' .. range .. command)
+
+      local splitpos = position == 'left' and 'topleft' or 'botright'
+      vim.cmd('vert ' .. splitpos .. ' ' .. range .. command)
       -- must refresh winnr because windows may have changed
       dest_window = get_dest_window(position)
       vim.cmd('vert ' .. dest_window .. ' resize ' .. M.get_darkroom_width())
     else
       -- make sure we have a window and move to it
-      if not is_darkroom_window(dest_window) then 
-        split_window(position) 
+      if not is_darkroom_window(dest_window) then
+        split_window(position)
       end
-      
+
       vim.cmd(dest_window .. ' wincmd w')
       vim.cmd(range .. command)
     end
@@ -229,19 +246,19 @@ function M.setup(opts)
   end, { nargs = 0 })
 
   vim.api.nvim_create_user_command('DarkRoomLeft', function(args)
-    M.cmd('topleft', args.args, false)
+    M.cmd('left', args.args, false)
   end, { nargs = '+', range = true })
 
   vim.api.nvim_create_user_command('DarkRoomRight', function(args)
-    M.cmd('botright', args.args, false)
+    M.cmd('right', args.args, false)
   end, { nargs = '+', range = true })
 
   vim.api.nvim_create_user_command('DarkRoomReplaceLeft', function(args)
-    M.cmd('topleft', args.args, true)
+    M.cmd('left', args.args, true)
   end, { nargs = '+', range = true })
 
   vim.api.nvim_create_user_command('DarkRoomReplaceRight', function(args)
-    M.cmd('botright', args.args, true)
+    M.cmd('right', args.args, true)
   end, { nargs = '+', range = true })
 
   -- Create default mapping
