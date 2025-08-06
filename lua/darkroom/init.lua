@@ -3,6 +3,7 @@
 -- Maintainer: Paulo Diovani <https://github.com/paulodiovani>
 
 local M = {}
+local edgy = require("edgy")
 
 -- Default configuration
 M.config = {
@@ -150,17 +151,8 @@ end
 function M.toggle()
   -- make only window if darkroom is in use
   if is_active() then
-    -- focus on first non-darkroom window, if needed
-    if is_darkroom_window() then
-      local focus_window = M.get_windows('nondarkroom')[1]
-      vim.cmd(focus_window .. 'wincmd w')
-    end
-
-    -- close darkroom windows (in reverse bc of win numbers)
-    local darkroom_windows = M.get_windows('darkroom')
-    for i = #darkroom_windows, 1, -1 do
-      vim.cmd(darkroom_windows[i] .. ' wincmd c')
-    end
+    -- let edgy close windows
+    edgy.close()
   else
     if not is_darkroom_window(1) then
       split_window('left')
@@ -264,7 +256,7 @@ function M.setup(opts)
   end
 
   -- setup edgy.nvim
-  require("edgy").setup({
+  edgy.setup({
     left = {
       {
         ft = "darkroomleft",
