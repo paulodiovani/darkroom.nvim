@@ -27,14 +27,14 @@ local function is_darkroom_window(window)
   local buffer = vim.fn.bufname(vim.fn.winbufnr(window))
   local window_width = vim.fn.winwidth(window)
   local darkroom_width = M.get_darkroom_width()
-  
+
   return string.find(buffer, M.config.bufname) ~= nil or window_width == darkroom_width
 end
 
 local function get_dest_window(position)
-  if position == 'topleft' then
+  if position == 'left' then
     return 1
-  else -- botright
+  else -- right
     return vim.fn.winnr('$')
   end
 end
@@ -126,8 +126,17 @@ local function split_window(position)
   if width <= 0 then
     return
   end
-  
-  vim.cmd('vert ' .. position .. ' ' .. width .. 'sview +setlocal\\ ' .. M.config.win_params .. ' ' .. M.config.bufname)
+
+  local buf = vim.fn.bufadd(M.config.bufname)
+  local win = vim.api.nvim_open_win(buf, true, {
+    split = position,
+    width = width,
+  })
+  -- Parse win_params and apply them
+  for option, value in string.gmatch(M.config.win_params, "(%w+)=(%w+)") do
+    vim.api.nvim_win_set_option(win, option, value)
+  end
+
   set_window_bg()
   vim.cmd('wincmd p')
 end
@@ -148,12 +157,12 @@ function M.toggle()
       vim.cmd(darkroom_windows[i] .. ' wincmd c')
     end
   else
-    if not is_darkroom_window(1) then 
-      split_window('topleft') 
+    if not is_darkroom_window(1) then
+      split_window('left')
     end
-    
-    if not is_darkroom_window(vim.fn.winnr('$')) then 
-      split_window('botright') 
+
+    if not is_darkroom_window(vim.fn.winnr('$')) then
+      split_window('right')
     end
   end
 end
@@ -229,19 +238,19 @@ function M.setup(opts)
   end, { nargs = 0 })
 
   vim.api.nvim_create_user_command('DarkRoomLeft', function(args)
-    M.cmd('topleft', args.args, false)
+    M.cmd('left', args.args, false)
   end, { nargs = '+', range = true })
 
   vim.api.nvim_create_user_command('DarkRoomRight', function(args)
-    M.cmd('botright', args.args, false)
+    M.cmd('right', args.args, false)
   end, { nargs = '+', range = true })
 
   vim.api.nvim_create_user_command('DarkRoomReplaceLeft', function(args)
-    M.cmd('topleft', args.args, true)
+    M.cmd('left', args.args, true)
   end, { nargs = '+', range = true })
 
   vim.api.nvim_create_user_command('DarkRoomReplaceRight', function(args)
-    M.cmd('botright', args.args, true)
+    M.cmd('right', args.args, true)
   end, { nargs = '+', range = true })
 
   -- Create default mapping
