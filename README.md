@@ -16,32 +16,7 @@ Written in pure Lua
 
 ## Installation
 
-### Using a plugin manager (recommended)
-
-#### [vim-plug](https://github.com/junegunn/vim-plug)
-
-```vim
-Plug 'paulodiovani/darkroom.nvim'
-```
-
-#### [Vundle](https://github.com/VundleVim/Vundle.vim)
-
-```vim
-Plugin 'paulodiovani/darkroom.nvim'
-```
-
-#### [packer.nvim](https://github.com/wbthomason/packer.nvim)
-
-```lua
-use {
-  'paulodiovani/darkroom.nvim',
-  config = function()
-    require('darkroom').setup()
-  end
-}
-```
-
-#### [lazy.nvim](https://github.com/folke/lazy.nvim)
+### Using [lazy.nvim](https://github.com/folke/lazy.nvim) (recommended)
 
 ```lua
 {
@@ -57,8 +32,7 @@ use {
 Clone this repository into your Vim plugins directory:
 
 ```bash
-# For Neovim
-git clone https://github.com/paulodiovani/darkroom.nvim.git ~/.local/share/nvim/site/pack/plugins/start/darkroom.nvim
+git clone https://github.com/paulodiovani/darkroom.nvim.git ~/.local/share/nvim/pack/plugins/start/darkroom.nvim
 ```
 
 ## Usage
