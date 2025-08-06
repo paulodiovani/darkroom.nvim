@@ -1,0 +1,120 @@
+*darkroom.txt*  A Neovim plugin that simulates a dark room by creating darkened side windows
+
+Author:  Paulo Diovani <https://github.com/paulodiovani>
+License: Same as Vim (see |license|)
+
+==============================================================================
+CONTENTS                                             *darkroom-contents*
+
+    1. Introduction ................................. |darkroom-introduction|
+    2. Usage ........................................ |darkroom-usage|
+    3. Configuration ............................... |darkroom-configuration|
+    4. Commands .................................... |darkroom-commands|
+    5. Mappings .................................... |darkroom-mappings|
+    6. About ....................................... |darkroom-about|
+
+==============================================================================
+1. INTRODUCTION                                     *darkroom-introduction*
+
+DarkRoom is a Neovim plugin that simulates a dark room by creating darkened side 
+windows, keeping your focus on the centered window.
+
+Features:
+- Written in pure Lua
+
+==============================================================================
+2. USAGE                                            *darkroom-usage*
+
+Toggle DarkRoom mode with either:
+- `<Leader><BS>` (default mapping)
+- `:DarkRoomToggle` command
+
+When enabled, DarkRoom creates two darkened side panels and centers your text
+in the middle of the screen. Toggle it again to return to normal editing view.
+
+You can also run commands in the side panels:
+- `:DarkRoomLeft {cmd}` to run a command in the left panel
+- `:DarkRoomRight {cmd}` to run a command in the right panel
+- `:DarkRoomReplaceLeft {cmd}` to replace left darkroom window with a Vim command
+- `:DarkRoomReplaceRight {cmd}` to replace right darkroom window with a Vim command
+
+This allows you to use the side panels for displaying file explorers, terminals,
+help pages, or any other Vim window while maintaining your focused writing area.
+
+==============================================================================
+3. CONFIGURATION                                    *darkroom-configuration*
+
+Add the following settings to your `init.lua` to customize the plugin's
+behavior. Default values are shown below.
+>lua
+  require('darkroom').setup({
+    -- Buffer name used in DarkRoom side windows
+    bufname = '__darkroom__',
+    
+    -- Highlight group name for darkened side windows
+    highlight = 'DarkRoomNormal',
+    
+    -- Percent to darken the background color in side windows (0-100)
+    darken_percent = 25,
+    
+    -- Minimum number of columns for the main/center window
+    min_columns = 130,
+    
+    -- Window parameters for side panels
+    win_params = 'buftype=nofile filetype=darkroom bufhidden=wipe nomodifiable 
+             nobuflisted noswapfile nocursorline nocursorcolumn nonumber 
+             norelativenumber noruler nolist noshowmode noshowcmd'
+  })
+<
+
+3.1 RECOMMENDED VIM SETTINGS                       *darkroom-recommended-settings*
+
+For optimal DarkRoom behavior, it's recommended to disable the 'equalalways' 
+option in your Neovim configuration:
+>
+    vim.opt.equalalways = false
+<
+This prevents Vim from automatically equalizing window sizes when
+DarkRoom is active.
+
+==============================================================================
+4. COMMANDS                                         *darkroom-commands*
+
+*:DarkRoomToggle*
+    Toggle DarkRoom mode on/off.
+
+*:DarkRoomLeft* {cmd}
+    Run a Vim command in the left darkroom window.
+    Example: `:DarkRoomLeft Explore`
+
+*:DarkRoomRight* {cmd}
+    Run a Vim command in the right darkroom window.
+    Example: `:DarkRoomRight help darkroom`
+
+*:DarkRoomReplaceLeft* {cmd}
+    Replace the left darkroom window with a Vim command.
+    Example: `:DarkRoomReplaceLeft terminal`
+
+*:DarkRoomReplaceRight* {cmd}
+    Replace the right darkroom window with a Vim command.
+    Example: `:DarkRoomReplaceRight Gstatus`
+
+==============================================================================
+5. MAPPINGS                                         *darkroom-mappings*
+
+<Leader><BS>                                        *<Leader><BS>*
+    Default mapping to toggle DarkRoom mode.
+
+<Plug>DarkRoomToggle                              *<Plug>DarkRoomToggle*
+    Mapping to toggle DarkRoom mode. Can be remapped to a custom key.
+    Example: >
+        nmap <silent> <F8> <Plug>DarkRoomToggle
+<
+
+==============================================================================
+6. ABOUT                                            *darkroom-about*
+
+This plugin is maintained by Paulo Diovani <https://github.com/paulodiovani>.
+Report issues or contribute at https://github.com/paulodiovani/darkroom.nvim
+
+ vim:tw=78:ts=8:ft=help:norl:
