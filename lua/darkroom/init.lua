@@ -6,17 +6,11 @@ local M = {}
 
 -- Default configuration
 M.config = {
-  bufname = '__darkroom__',     -- buffer name used in darkroom side windows
   highlight = 'DarkRoomNormal', -- highlight group name used by darkroom
   darken_percent = 25,          -- percent to darken the bg color in darkroom side windows
   min_columns = 130,            -- minimum number of columns for the main/center window
   win_options = {               -- window params for darkroom windows
-    buftype = 'nofile',
     filetype = 'darkroom',
-    bufhidden = 'wipe',
-    modifiable = false,
-    buflisted = false,
-    swapfile = false,
   },
   edgy_win_options = {                     -- edgy window options
     winbar = false,                        -- do not show winbar
@@ -35,11 +29,10 @@ end
 
 local function is_darkroom_window(window)
   window = window or 0 -- 0 for current window
-  local buffer = vim.fn.bufname(vim.fn.winbufnr(window))
   local window_width = vim.fn.winwidth(window)
   local darkroom_width = M.get_darkroom_width()
 
-  return string.find(buffer, M.config.bufname) ~= nil or window_width == darkroom_width
+  return window_width == darkroom_width
 end
 
 local function get_dest_window(position)
@@ -140,11 +133,12 @@ local function split_window(position)
   end
 
   -- set position in bufname and filetype
-  config.bufname = config.bufname:gsub('__$', position .. '__')
+  -- config.bufname = config.bufname:gsub('__$', position .. '__')
   config.win_options.filetype = config.win_options.filetype .. position
 
-  local buf = vim.fn.bufadd(config.bufname)
-  vim.api.nvim_open_win(buf, false, { split = position })
+  -- local buf = vim.fn.bufadd(config.bufname)
+  local buf = vim.api.nvim_create_buf(false, true)
+  local win = vim.api.nvim_open_win(buf, false, { split = position })
 
   -- Apply window options
   for option, value in pairs(config.win_options) do
