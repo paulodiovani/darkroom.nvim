@@ -21,7 +21,10 @@ M.config = {
 
     },
   },
-  edgy_win_options = {                                             -- edgy window options
+  --  window options used in darkroom left/right windows
+  --- @type vim.wo
+  --- @diagnostic disable: missing-fields
+  wo = {
     winbar = false,                                                -- do not show winbar
     winhighlight = "Normal:DarkRoomNormal,NormalNC:DarkRoomNormal" -- window highlight used by darkroom
   },
@@ -130,7 +133,7 @@ end
 
 -- Set window background
 local function set_window_bg()
-  vim.cmd('set winhighlight=' .. M.config.edgy_win_options.winhighlight)
+  vim.cmd('set winhighlight=' .. M.config.wo.winhighlight)
 end
 
 -- Split window at the given position
@@ -205,7 +208,7 @@ function M.exec(position, command, replace)
     set_window_bg()
   end)
 
-  if not ok then
+  if not ok and err then
     vim.api.nvim_err_writeln(err)
     -- return to main window in case of error
     edgy.goto_main()
@@ -258,14 +261,14 @@ function M.setup(opts)
       {
         ft = M.config.left.filetype,
         size = { width = M.get_darkroom_width },
-        wo = M.config.edgy_win_options
+        wo = M.config.wo
       },
       -- Add additional filetypes for left side
       unpack(vim.tbl_map(function(ft)
         return {
           ft = ft,
           size = { width = M.get_darkroom_width },
-          wo = M.config.edgy_win_options
+          wo = M.config.wo
         }
       end, M.config.left.additional_filetypes or {})),
     },
@@ -273,14 +276,14 @@ function M.setup(opts)
       {
         ft = M.config.right.filetype,
         size = { width = M.get_darkroom_width },
-        wo = M.config.edgy_win_options
+        wo = M.config.wo
       },
       -- Add additional filetypes for right side
       unpack(vim.tbl_map(function(ft)
         return {
           ft = ft,
           size = { width = M.get_darkroom_width },
-          wo = M.config.edgy_win_options
+          wo = M.config.wo
         }
       end, M.config.right.additional_filetypes or {})),
     },
