@@ -7,12 +7,11 @@ local edgy = require("edgy")
 
 -- Default configuration
 M.config = {
-  highlight = 'DarkRoomNormal', -- highlight group name used by darkroom
-  darken_percent = 25,          -- percent to darken the bg color in darkroom side windows
-  min_columns = 130,            -- minimum number of columns for the main/center window
-  left = {                      -- left window options
-    filetype = "darkroomleft",  -- darkroom window filetype
-    additional_filetypes = {    -- additional filetypes to use darkroom
+  darken_percent = 25,         -- percent to darken the bg color in darkroom side windows
+  min_columns = 130,           -- minimum number of columns for the main/center window
+  left = {                     -- left window options
+    filetype = "darkroomleft", -- darkroom window filetype
+    additional_filetypes = {   -- additional filetypes to use darkroom
 
     },
   },
@@ -24,7 +23,7 @@ M.config = {
   },
   edgy_win_options = {                                             -- edgy window options
     winbar = false,                                                -- do not show winbar
-    winhighlight = "Normal:DarkRoomNormal,NormalNC:DarkRoomNormal" -- highlight group name used by darkroom
+    winhighlight = "Normal:DarkRoomNormal,NormalNC:DarkRoomNormal" -- window highlight used by darkroom
   },
 }
 
@@ -131,10 +130,10 @@ end
 
 -- Set window background
 local function set_window_bg()
-  vim.cmd('set winhighlight=Normal:' .. M.config.highlight)
+  vim.cmd('set winhighlight=' .. M.config.edgy_win_options.winhighlight)
 end
 
--- Split window at the given position and set win highlight
+-- Split window at the given position
 local function split_window(position)
   local width = M.get_darkroom_width()
   local filetype = position == "left" and M.config.left.filetype or M.config.right.filetype
@@ -213,11 +212,6 @@ function M.cmd(position, command, replace)
   end
 end
 
--- Set up the highlight group
-local function setup_highlight()
-  vim.cmd('highlight ' .. M.config.highlight .. ' guibg=' .. M.get_darker_bg())
-end
-
 -- Setup function to initialize the plugin with user configuration
 function M.setup(opts)
   -- Merge user config with defaults
@@ -226,10 +220,11 @@ function M.setup(opts)
   end
 
   if not is_initialized then
-    -- Set up highlight group
-    setup_highlight()
     is_initialized = true
   end
+
+  -- Set up highlight group
+  vim.cmd('highlight DarkRoomNormal guibg=' .. M.get_darker_bg())
 
   -- Create commands
   vim.api.nvim_create_user_command('DarkRoomToggle', function()
