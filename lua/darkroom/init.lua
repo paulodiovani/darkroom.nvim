@@ -10,8 +10,17 @@ M.config = {
   highlight = 'DarkRoomNormal', -- highlight group name used by darkroom
   darken_percent = 25,          -- percent to darken the bg color in darkroom side windows
   min_columns = 130,            -- minimum number of columns for the main/center window
-  win_options = {               -- window params for darkroom windows
-    filetype = 'darkroom',
+  left = {                      -- left window options
+    filetype = "darkroomleft",  -- darkroom window filetype
+    additional_filetypes = {    -- additional filetypes to use darkroom
+
+    },
+  },
+  right = {                     -- left window options
+    filetype = "darkroomright", -- darkroom window filetype
+    additional_filetypes = {    -- additional filetypes to use darkroom
+
+    },
   },
   edgy_win_options = {                     -- edgy window options
     winbar = false,                        -- do not show winbar
@@ -126,25 +135,19 @@ end
 
 -- Split window at the given position and set win highlight
 local function split_window(position)
-  local config = vim.deepcopy(M.config)
   local width = M.get_darkroom_width()
+  local filetype = position == "left" and M.config.left.filetype or M.config.right.filetype
 
   if width <= 0 then
     return
   end
 
-  -- set position in bufname and filetype
-  -- config.bufname = config.bufname:gsub('__$', position .. '__')
-  config.win_options.filetype = config.win_options.filetype .. position
-
   -- local buf = vim.fn.bufadd(config.bufname)
   local buf = vim.api.nvim_create_buf(false, true)
-  local win = vim.api.nvim_open_win(buf, false, { split = position })
+  local win = vim.api.nvim_open_win(buf, false, { vertical = true, split = position, width = width })
 
-  -- Apply window options
-  for option, value in pairs(config.win_options) do
-    vim.api.nvim_set_option_value(option, value, { scope = 'local', buf = buf })
-  end
+  -- Apply buffer/window options
+  vim.api.nvim_set_option_value("filetype", filetype, { scope = 'local', buf = buf })
 end
 
 -- Toggle darkroom to use a smaller viewport
@@ -259,14 +262,14 @@ function M.setup(opts)
   edgy.setup({
     left = {
       {
-        ft = "darkroomleft",
+        ft = M.config.left.filetype,
         size = { width = M.get_darkroom_width },
         wo = M.config.edgy_win_options
       },
     },
     right = {
       {
-        ft = "darkroomright",
+        ft = M.config.right.filetype,
         size = { width = M.get_darkroom_width },
         wo = M.config.edgy_win_options
       },
