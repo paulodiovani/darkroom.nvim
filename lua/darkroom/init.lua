@@ -22,9 +22,9 @@ M.config = {
 
     },
   },
-  edgy_win_options = {                     -- edgy window options
-    winbar = false,                        -- do not show winbar
-    winhighlight = "Normal:DarkRoomNormal" -- highlight group name used by darkroom
+  edgy_win_options = {                                             -- edgy window options
+    winbar = false,                                                -- do not show winbar
+    winhighlight = "Normal:DarkRoomNormal,NormalNC:DarkRoomNormal" -- highlight group name used by darkroom
   },
 }
 
@@ -37,6 +37,7 @@ local function is_active()
   return #darkroom_windows >= 2
 end
 
+-- TODO: update to check for filetypes
 local function is_darkroom_window(window)
   window = window or 0 -- 0 for current window
   local window_width = vim.fn.winwidth(window)
@@ -144,7 +145,7 @@ local function split_window(position)
 
   -- local buf = vim.fn.bufadd(config.bufname)
   local buf = vim.api.nvim_create_buf(false, true)
-  local win = vim.api.nvim_open_win(buf, false, { vertical = true, split = position, width = width })
+  vim.api.nvim_open_win(buf, false, { vertical = true, split = position, width = width })
 
   -- Apply buffer/window options
   vim.api.nvim_set_option_value("filetype", filetype, { scope = 'local', buf = buf })
@@ -221,9 +222,7 @@ end
 function M.setup(opts)
   -- Merge user config with defaults
   if opts then
-    for k, v in pairs(opts) do
-      M.config[k] = v
-    end
+    M.config = vim.tbl_deep_extend("force", M.config, opts)
   end
 
   if not is_initialized then
@@ -266,6 +265,14 @@ function M.setup(opts)
         size = { width = M.get_darkroom_width },
         wo = M.config.edgy_win_options
       },
+      -- Add additional filetypes for left side
+      unpack(vim.tbl_map(function(ft)
+        return {
+          ft = ft,
+          size = { width = M.get_darkroom_width },
+          wo = M.config.edgy_win_options
+        }
+      end, M.config.left.additional_filetypes or {})),
     },
     right = {
       {
@@ -273,6 +280,14 @@ function M.setup(opts)
         size = { width = M.get_darkroom_width },
         wo = M.config.edgy_win_options
       },
+      -- Add additional filetypes for right side
+      unpack(vim.tbl_map(function(ft)
+        return {
+          ft = ft,
+          size = { width = M.get_darkroom_width },
+          wo = M.config.edgy_win_options
+        }
+      end, M.config.right.additional_filetypes or {})),
     },
   })
 end
