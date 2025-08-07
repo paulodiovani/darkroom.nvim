@@ -28,6 +28,9 @@ M.config = {
     winbar = false,                                                -- do not show winbar
     winhighlight = "Normal:DarkRoomNormal,NormalNC:DarkRoomNormal" -- window highlight used by darkroom
   },
+  -- setup edgy.nvim
+  -- set as false to configure edgy yourself
+  setup_edgy = true
 }
 
 -- Local state
@@ -133,7 +136,7 @@ end
 
 -- Set window background
 local function set_window_bg()
-  vim.cmd('set winhighlight=' .. M.config.wo.winhighlight)
+  vim.api.nvim_set_option_value("winhighlight", M.config.wo.winhighlight, { scope = 'local' })
 end
 
 -- Split window at the given position
@@ -209,10 +212,48 @@ function M.exec(position, command, replace)
   end)
 
   if not ok and err then
-    vim.api.nvim_err_writeln(err)
+    vim.notify(err, vim.log.levels.ERROR)
     -- return to main window in case of error
     edgy.goto_main()
   end
+end
+
+--  return edgy options used for darkroom windows
+--- @return Edgy.Config
+function M.edgy_options()
+  return {
+    animate = { enabled = false },
+    left = {
+      {
+        ft = M.config.left.filetype,
+        size = { width = M.get_darkroom_width },
+        wo = M.config.wo
+      },
+      -- Add additional filetypes for left side
+      unpack(vim.tbl_map(function(ft)
+        return {
+          ft = ft,
+          size = { width = M.get_darkroom_width },
+          wo = M.config.wo
+        }
+      end, M.config.left.additional_filetypes or {})),
+    },
+    right = {
+      {
+        ft = M.config.right.filetype,
+        size = { width = M.get_darkroom_width },
+        wo = M.config.wo
+      },
+      -- Add additional filetypes for right side
+      unpack(vim.tbl_map(function(ft)
+        return {
+          ft = ft,
+          size = { width = M.get_darkroom_width },
+          wo = M.config.wo
+        }
+      end, M.config.right.additional_filetypes or {})),
+    },
+  }
 end
 
 -- Setup function to initialize the plugin with user configuration
@@ -256,38 +297,9 @@ function M.setup(opts)
   end
 
   -- setup edgy.nvim
-  edgy.setup({
-    left = {
-      {
-        ft = M.config.left.filetype,
-        size = { width = M.get_darkroom_width },
-        wo = M.config.wo
-      },
-      -- Add additional filetypes for left side
-      unpack(vim.tbl_map(function(ft)
-        return {
-          ft = ft,
-          size = { width = M.get_darkroom_width },
-          wo = M.config.wo
-        }
-      end, M.config.left.additional_filetypes or {})),
-    },
-    right = {
-      {
-        ft = M.config.right.filetype,
-        size = { width = M.get_darkroom_width },
-        wo = M.config.wo
-      },
-      -- Add additional filetypes for right side
-      unpack(vim.tbl_map(function(ft)
-        return {
-          ft = ft,
-          size = { width = M.get_darkroom_width },
-          wo = M.config.wo
-        }
-      end, M.config.right.additional_filetypes or {})),
-    },
-  })
+  if M.config.setup_edgy then
+    edgy.setup(M.edgy_options())
+  end
 end
 
 return M
