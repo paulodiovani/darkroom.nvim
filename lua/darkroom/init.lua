@@ -168,7 +168,7 @@ function M.toggle()
 end
 
 -- Runs a command on the specified darkroom window
-function M.cmd(position, command, replace)
+function M.exec(position, command, replace)
   replace = replace or false
   local dest_window = get_dest_window(position)
 
@@ -208,7 +208,7 @@ function M.cmd(position, command, replace)
   if not ok then
     vim.api.nvim_err_writeln(err)
     -- return to main window in case of error
-    vim.cmd('silent wincmd p')
+    edgy.goto_main()
   end
 end
 
@@ -232,19 +232,19 @@ function M.setup(opts)
   end, { nargs = 0 })
 
   vim.api.nvim_create_user_command('DarkRoomLeft', function(args)
-    M.cmd('left', args.args, false)
+    M.exec('left', args.args, false)
   end, { nargs = '+', range = true })
 
   vim.api.nvim_create_user_command('DarkRoomRight', function(args)
-    M.cmd('right', args.args, false)
+    M.exec('right', args.args, false)
   end, { nargs = '+', range = true })
 
   vim.api.nvim_create_user_command('DarkRoomReplaceLeft', function(args)
-    M.cmd('left', args.args, true)
+    M.exec('left', args.args, true)
   end, { nargs = '+', range = true })
 
   vim.api.nvim_create_user_command('DarkRoomReplaceRight', function(args)
-    M.cmd('right', args.args, true)
+    M.exec('right', args.args, true)
   end, { nargs = '+', range = true })
 
   -- Create default mapping
