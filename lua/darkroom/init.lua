@@ -72,6 +72,7 @@ local function is_darkroom_window(window)
   return false
 end
 
+-- return a window number for the position
 local function get_dest_window(position)
   if position == 'left' then
     return 1
@@ -171,7 +172,7 @@ local function split_window(position)
 
   -- local buf = vim.fn.bufadd(config.bufname)
   local buf = vim.api.nvim_create_buf(false, true)
-  vim.api.nvim_open_win(buf, false, { vertical = true, split = position, width = width })
+  vim.api.nvim_open_win(buf, false, { vertical = true, split = position })
 
   -- Apply buffer/window options
   vim.api.nvim_set_option_value("filetype", filetype, { scope = 'local', buf = buf })
@@ -198,6 +199,7 @@ end
 function M.exec(position, command, replace)
   replace = replace or false
   local dest_window = get_dest_window(position)
+  local dest_win_id = vim.fn.win_getid(dest_window)
 
   local range = ""
   local mode = vim.fn.mode() -- editor mode
@@ -211,22 +213,25 @@ function M.exec(position, command, replace)
     if replace == true then
       -- close darkroom window first, if exists
       if is_darkroom_window(dest_window) then
-        vim.cmd(dest_window .. ' wincmd c')
+        vim.api.nvim_win_close(dest_win_id, false)
       end
 
       local splitpos = position == 'left' and 'topleft' or 'botright'
       vim.cmd('vert ' .. splitpos .. ' ' .. range .. command)
-      -- must refresh winnr because windows may have changed
+      -- must refresh winnr because windows have changed
       dest_window = get_dest_window(position)
-      vim.cmd('vert ' .. dest_window .. ' resize ' .. M.get_darkroom_width())
+      dest_win_id = vim.fn.win_getid(dest_window)
     else
       -- make sure we have a window and move to it
       if not is_darkroom_window(dest_window) then
         split_window(position)
+        -- must refresh winnr because windows have changed
+        dest_window = get_dest_window(position)
+        dest_win_id = vim.fn.win_getid(dest_window)
       end
 
-      vim.cmd(dest_window .. ' wincmd w')
-      vim.cmd(range .. command)
+      vim.api.nvim_set_current_win(dest_win_id)
+      vim.api.nvim_command(range .. command)
     end
 
     set_window_bg()
@@ -289,7 +294,7 @@ function M.setup(opts)
   end
 
   -- Set up highlight group
-  vim.cmd('highlight DarkRoomNormal guibg=' .. M.get_darker_bg())
+  vim.api.nvim_set_hl(0, "DarkRoomNormal", { bg = M.get_darker_bg() })
 
   -- Create commands
   vim.api.nvim_create_user_command('DarkRoomToggle', function()
