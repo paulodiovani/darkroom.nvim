@@ -42,13 +42,34 @@ local function is_active()
   return #darkroom_windows >= 2
 end
 
--- TODO: update to check for filetypes
+-- check if a window is a darkroom window
 local function is_darkroom_window(window)
   window = window or 0 -- 0 for current window
-  local window_width = vim.fn.winwidth(window)
-  local darkroom_width = M.get_darkroom_width()
 
-  return window_width == darkroom_width
+  local winid = vim.fn.win_getid(window)
+  local bufnr = vim.api.nvim_win_get_buf(winid)
+  local ft = vim.api.nvim_get_option_value('filetype', { scope = 'local', buf = bufnr })
+
+  -- Check if the filetype matches any darkroom filetypes
+  if ft == M.config.left.filetype or ft == M.config.right.filetype then
+    return true
+  end
+
+  -- Check additional filetypes for left side
+  for _, additional_ft in ipairs(M.config.left.additional_filetypes or {}) do
+    if ft == additional_ft then
+      return true
+    end
+  end
+
+  -- Check additional filetypes for right side
+  for _, additional_ft in ipairs(M.config.right.additional_filetypes or {}) do
+    if ft == additional_ft then
+      return true
+    end
+  end
+
+  return false
 end
 
 local function get_dest_window(position)
