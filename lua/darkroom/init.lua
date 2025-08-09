@@ -24,8 +24,10 @@ local default_options = {
   --- @type vim.wo
   --- @diagnostic disable: missing-fields
   wo = {
-    winbar = false,                                                -- do not show winbar
-    winhighlight = "Normal:DarkRoomNormal,NormalNC:DarkRoomNormal" -- window highlight used by darkroom
+    -- do not show winbar
+    winbar = false,
+    -- window highlight used by darkroom
+    winhighlight = "Normal:DarkRoomNormal,NormalNC:DarkRoomNormal,EndOfBuffer:DarkRoomNormal"
   },
   -- setup edgy.nvim
   -- set as false to configure edgy yourself

@@ -77,8 +77,10 @@ behavior. Default values are shown below.
     
     -- Window options used in darkroom left/right windows
     wo = {
-      winbar = false,                                                -- do not show winbar
-      winhighlight = "Normal:DarkRoomNormal,NormalNC:DarkRoomNormal" -- window highlight used by darkroom
+      -- do not show winbar
+      winbar = false,
+      -- window highlight used by darkroom
+      winhighlight = "Normal:DarkRoomNormal,NormalNC:DarkRoomNormal,EndOfBuffer:DarkRoomNormal"
     },
     
     -- Setup edgy.nvim automatically
