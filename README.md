@@ -2,7 +2,7 @@
 
 A Neovim plugin that simulates a dark room by creating darkened side windows, keeping your focus on the centered window.
 
-![screenshot-001](media/screenshot-001.png)
+![screenshot-001](assets/screenshot-001.png)
 
 Vim users should install [vim-darkroom](https://github.com/paulodiovani/vim-darkroom) instead.
 
