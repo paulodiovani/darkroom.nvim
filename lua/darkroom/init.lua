@@ -184,13 +184,17 @@ local function edgy_options()
   }
 end
 
---  return the calculated width used for darkroom windows
---- @return number
+-- public module methods
+
+--- Calculates the width to be used for darkroom side windows
+--- Based on the total columns available and the minimum columns setting for the main window
+--- @return number -- The calculated width for darkroom windows
 function M.get_darkroom_width()
   return math.floor((vim.o.columns - options.min_columns) / 2)
 end
 
--- Toggle darkroom to use a smaller viewport
+--- Toggles darkroom mode on and off
+--- Creates left and right side darkroom windows if not active, or closes them if active
 function M.toggle()
   -- make only window if darkroom is in use
   if is_active() then
@@ -207,7 +211,10 @@ function M.toggle()
   end
 end
 
--- Runs a command on the specified darkroom window
+--- Runs a command on the specified darkroom window
+--- @param position string The position of the darkroom window ('left' or 'right')
+--- @param command string The vim command to execute in the darkroom window
+--- @param replace boolean (optional) If true, replaces the existing window; if false, uses the existing window or creates a new one
 function M.exec(position, command, replace)
   replace = replace or false
   local dest_window = get_dest_window(position)
@@ -256,6 +263,9 @@ function M.exec(position, command, replace)
   end
 end
 
+--- Initializes the darkroom plugin with the given options
+--- Sets up commands, highlights, and optional edgy.nvim integration
+--- @param opts DarkRoomOptions Configuration options to override defaults
 function M.setup(opts)
   -- Merge user config with defaults
   opts = opts or {}
