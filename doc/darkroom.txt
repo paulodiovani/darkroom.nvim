@@ -105,6 +105,10 @@ If you prefer to configure edgy.nvim yourself, set `setup_edgy = false` in your 
       {
         ft = "darkroomleft",
         size = { width = function() return require('darkroom').get_darkroom_width() end },
+        wo = {
+          winbar = false,
+          winhighlight = "Normal:DarkRoomNormal,NormalNC:DarkRoomNormal,EndOfBuffer:DarkRoomNormal"
+        },
         -- your edgy options...
       },
       -- Other left windows...
@@ -114,6 +118,10 @@ If you prefer to configure edgy.nvim yourself, set `setup_edgy = false` in your 
       {
         ft = "darkroomright", 
         size = { width = function() return require('darkroom').get_darkroom_width() end },
+        wo = {
+          winbar = false,
+          winhighlight = "Normal:DarkRoomNormal,NormalNC:DarkRoomNormal,EndOfBuffer:DarkRoomNormal"
+        },
         -- your edgy options...
       },
       -- Other right windows...
