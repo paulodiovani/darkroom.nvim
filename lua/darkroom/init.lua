@@ -38,7 +38,7 @@ local is_initialized = false
 
 -- Helper functions
 local function is_active()
-  local darkroom_windows = M.get_windows('darkroom')
+  local darkroom_windows = M.get_darkroom_windows()
   return #darkroom_windows >= 2
 end
 
@@ -82,53 +82,20 @@ local function get_dest_window(position)
 end
 
 -- Return a list of window numbers filtered by type
-function M.get_windows(window_type)
-  window_type = window_type or 'all'
+function M.get_darkroom_windows()
   local windows = {}
   for i = 1, vim.fn.winnr('$') do
     table.insert(windows, i)
   end
 
-  if window_type == 'darkroom' then
-    -- return darkroom windows
-    local result = {}
-    for _, win in ipairs(windows) do
-      if is_darkroom_window(win) then
-        table.insert(result, win)
-      end
+  local result = {}
+  for _, win in ipairs(windows) do
+    if is_darkroom_window(win) then
+      table.insert(result, win)
     end
-    return result
-  elseif window_type == 'nondarkroom' then
-    -- return non-darkroom windows
-    local result = {}
-    for _, win in ipairs(windows) do
-      if not is_darkroom_window(win) then
-        table.insert(result, win)
-      end
-    end
-    return result
-  elseif window_type == 'vertical' then
-    -- return vertical split windows
-    local result = {}
-    for _, win in ipairs(windows) do
-      if vim.fn.winwidth(win) ~= vim.o.columns then
-        table.insert(result, win)
-      end
-    end
-    return result
-  elseif window_type == 'horizontal' then
-    -- return horizontal split windows
-    local result = {}
-    for _, win in ipairs(windows) do
-      if vim.fn.winheight(win) ~= vim.o.lines - vim.o.cmdheight - 1 then
-        table.insert(result, win)
-      end
-    end
-    return result
-  else -- if window_type == 'all'
-    -- return all windows
-    return windows
   end
+
+  return result
 end
 
 function M.get_darkroom_width()
