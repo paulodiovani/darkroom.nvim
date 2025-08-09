@@ -5,8 +5,7 @@
 local M = {}
 local edgy = require("edgy")
 
--- Default configuration
-M.config = {
+local default_options = {
   darken_percent = 25,         -- percent to darken the bg color in darkroom side windows
   min_columns = 130,           -- minimum number of columns for the main/center window
   left = {                     -- left window options
@@ -32,6 +31,7 @@ M.config = {
   -- set as false to configure edgy yourself
   setup_edgy = true
 }
+local options
 
 -- Local state
 local is_initialized = false
@@ -51,19 +51,19 @@ local function is_darkroom_window(window)
   local ft = vim.api.nvim_get_option_value('filetype', { scope = 'local', buf = bufnr })
 
   -- Check if the filetype matches any darkroom filetypes
-  if ft == M.config.left.filetype or ft == M.config.right.filetype then
+  if ft == options.left.filetype or ft == options.right.filetype then
     return true
   end
 
   -- Check additional filetypes for left side
-  for _, additional_ft in ipairs(M.config.left.additional_filetypes or {}) do
+  for _, additional_ft in ipairs(options.left.additional_filetypes or {}) do
     if ft == additional_ft then
       return true
     end
   end
 
   -- Check additional filetypes for right side
-  for _, additional_ft in ipairs(M.config.right.additional_filetypes or {}) do
+  for _, additional_ft in ipairs(options.right.additional_filetypes or {}) do
     if ft == additional_ft then
       return true
     end
@@ -131,9 +131,8 @@ function M.get_windows(window_type)
   end
 end
 
--- Get darkroom windows width
 function M.get_darkroom_width()
-  return math.floor((vim.o.columns - M.config.min_columns) / 2)
+  return math.floor((vim.o.columns - options.min_columns) / 2)
 end
 
 -- Darken a hex color
@@ -150,21 +149,20 @@ function M.darken_color(hex, percent)
   return string.format("#%02x%02x%02x", r, g, b)
 end
 
--- Get a darker background color
 function M.get_darker_bg()
   local current_bg = vim.fn.synIDattr(vim.fn.hlID('Normal'), 'bg#')
-  return M.darken_color(current_bg, M.config.darken_percent)
+  return M.darken_color(current_bg, options.darken_percent)
 end
 
 -- Set window background
 local function set_window_bg()
-  vim.api.nvim_set_option_value("winhighlight", M.config.wo.winhighlight, { scope = 'local' })
+  vim.api.nvim_set_option_value("winhighlight", options.wo.winhighlight, { scope = 'local' })
 end
 
 -- Split window at the given position
 local function split_window(position)
   local width = M.get_darkroom_width()
-  local filetype = position == "left" and M.config.left.filetype or M.config.right.filetype
+  local filetype = position == "left" and options.left.filetype or options.right.filetype
 
   if width <= 0 then
     return
@@ -251,43 +249,41 @@ function M.edgy_options()
     animate = { enabled = false },
     left = {
       {
-        ft = M.config.left.filetype,
+        ft = options.left.filetype,
         size = { width = M.get_darkroom_width },
-        wo = M.config.wo
+        wo = options.wo
       },
       -- Add additional filetypes for left side
       unpack(vim.tbl_map(function(ft)
         return {
           ft = ft,
           size = { width = M.get_darkroom_width },
-          wo = M.config.wo
+          wo = options.wo
         }
-      end, M.config.left.additional_filetypes or {})),
+      end, options.left.additional_filetypes or {})),
     },
     right = {
       {
-        ft = M.config.right.filetype,
+        ft = options.right.filetype,
         size = { width = M.get_darkroom_width },
-        wo = M.config.wo
+        wo = options.wo
       },
       -- Add additional filetypes for right side
       unpack(vim.tbl_map(function(ft)
         return {
           ft = ft,
           size = { width = M.get_darkroom_width },
-          wo = M.config.wo
+          wo = options.wo
         }
-      end, M.config.right.additional_filetypes or {})),
+      end, options.right.additional_filetypes or {})),
     },
   }
 end
 
--- Setup function to initialize the plugin with user configuration
 function M.setup(opts)
   -- Merge user config with defaults
-  if opts then
-    M.config = vim.tbl_deep_extend("force", M.config, opts)
-  end
+  opts = opts or {}
+  options = vim.tbl_deep_extend("force", default_options, opts)
 
   if not is_initialized then
     is_initialized = true
@@ -323,7 +319,7 @@ function M.setup(opts)
   end
 
   -- setup edgy.nvim
-  if M.config.setup_edgy then
+  if options.setup_edgy then
     edgy.setup(M.edgy_options())
   end
 end
