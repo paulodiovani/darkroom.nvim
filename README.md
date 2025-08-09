@@ -10,9 +10,7 @@ Vim users should install [vim-darkroom](https://github.com/paulodiovani/vim-dark
 
 Written in pure Lua
 
-- Toggle a centered writing area with darkened side panels
-- Automatically darkens the side panels based on your current colorscheme
-- Run Vim commands in side windows (file explorer, terminal, etc.)
+Uses [edgy.nvim](https://github.com/folke/edgy.nvim) for intelligent window management
 
 ## Installation
 
@@ -24,6 +22,9 @@ Written in pure Lua
   keys = '<Leader><BS>',
   cmd = 'DarkRoomToggle',
   config = true,
+  dependencies = {
+    'folke/edgy.nvim',
+  }
 }
 ```
 
@@ -35,17 +36,27 @@ Clone this repository into your Vim plugins directory:
 git clone https://github.com/paulodiovani/darkroom.nvim.git ~/.local/share/nvim/pack/plugins/start/darkroom.nvim
 ```
 
+Setup in your `config.lua`.
+
+```lua
+require('darkroom').setup()
+```
+
+Note: You'll also need to install [edgy.nvim](https://github.com/folke/edgy.nvim) as a dependency.
+
 ## Usage
 
-Toggle DarkRoom mode with:
+Toggle DarkRoom mode:
+
+- `:DarkRoomToggle`
 - `<Leader><BS>` (default mapping)
-- `:DarkRoomToggle` command
 
 Execute commands in side panels:
-- `:DarkRoomLeft {cmd}` - Run command in left panel
-- `:DarkRoomRight {cmd}` - Run command in right panel
-- `:DarkRoomReplaceLeft {cmd}` - Replace left darkroom window with a Vim command
-- `:DarkRoomReplaceRight {cmd}` - Replace right darkroom window with a Vim command
+
+- `:DarkRoomLeft [cmd]` (run command in left darkroom window)
+- `:DarkRoomRight [cmd]` (run command in right darkroom window)
+- `:DarkRoomReplaceLeft [cmd]` (replace left darkroom window with command)
+- `:DarkRoomReplaceRight [cmd]` (replace right darkroom window with command)
 
 Examples:
 
@@ -53,11 +64,11 @@ Examples:
 " Show file explorer in left panel
 :DarkRoomLeft Explore
 
-" Show help in right panel
-:DarkRoomRight help darkroom
-
 " Replace left panel with terminal
 :DarkRoomReplaceLeft terminal
+
+" Show help replacing right panel
+:DarkRoomReplaceRight help darkroom
 ```
 
 ## Configuration
@@ -67,35 +78,88 @@ Default values are shown below.
 
 ```lua
 require('darkroom').setup({
-  -- Buffer name used in DarkRoom side windows
-  bufname = '__darkroom__',
-
-  -- Highlight group name for darkroom windows
-  highlight = 'DarkRoomNormal',
-
   -- Percent to darken the background color in side windows (0-100)
   darken_percent = 25,
 
   -- Minimum number of columns for the main/center window
   min_columns = 130,
 
-  -- Window options for side panels
-  win_options = {
-    buftype = 'nofile',
-    filetype = 'darkroom',
-    bufhidden = 'wipe',
-    modifiable = false,
-    buflisted = false,
-    swapfile = false,
+  -- Left window options
+  left = {
+    filetype = "darkroomleft", -- darkroom window filetype
+    additional_filetypes = {   -- additional filetypes to use darkroom
+      -- Add any filetypes you want to be handled as darkroom left windows
+    },
+  },
+
+  -- Right window options
+  right = {
+    filetype = "darkroomright", -- darkroom window filetype
+    additional_filetypes = {    -- additional filetypes to use darkroom
+      -- Add any filetypes you want to be handled as darkroom right windows
+    },
+  },
+
+  -- Window options used in darkroom left/right windows
+  wo = {
+    winbar = false,                                                -- do not show winbar
+    winhighlight = "Normal:DarkRoomNormal,NormalNC:DarkRoomNormal" -- window highlight used by darkroom
+  },
+
+  -- Setup edgy.nvim automatically
+  -- set to false if you want to configure edgy yourself
+  setup_edgy = true
+})
+```
+
+### Using custom edgy.nvim configuration
+
+If you prefer to configure edgy.nvim yourself, set `setup_edgy = false` in your setup:
+
+```lua
+require('darkroom').setup({
+  -- Your darkroom configuration...
+  setup_edgy = false
+})
+
+-- Then configure edgy separately, including darkroom configuration
+require('edgy').setup({
+  -- Your edgy configuration...
+  left = {
+    -- Include darkroom windows in your edgy config
+    {
+      ft = "darkroomleft",
+      size = { width = function() return require('darkroom').get_darkroom_width() end },
+      -- your edgy options...
+    },
+    -- Other left windows...
+  },
+  right = {
+    -- Include darkroom windows in your edgy config
+    {
+      ft = "darkroomright",
+      size = { width = function() return require('darkroom').get_darkroom_width() end },
+      -- your edgy options...
+    },
+    -- Other right windows...
   }
+})
 ```
 
 ### Recommended Vim Settings
 
-For optimal DarkRoom behavior, it's recommended to disable 'equalalways' option in your Neovim configuration:
+For optimal DarkRoom behavior, it's recommended to disable 'equalalways' option in your Neovim configuration. This prevents Neovim from automatically equalizing window sizes when DarkRoom is active.
+
+#### `equalalways`
 
 ```lua
 vim.opt.equalalways = false
 ```
 
-This prevents Vim from automatically equalizing window sizes when DarkRoom is active.
+#### `fillchars`
+
+You might also want to remove the vertical window separator.
+
+```lua
+vim.opt.fillchars:append({ vert = ' ' })
+```
