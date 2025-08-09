@@ -2,9 +2,12 @@
 -- Author: Paulo Diovani <https://github.com/paulodiovani>
 -- Maintainer: Paulo Diovani <https://github.com/paulodiovani>
 
-local M = {}
 local edgy = require("edgy")
 
+--- @class DarkRoom
+local M = {}
+
+--- @class DarkRoomOptions
 local default_options = {
   darken_percent = 25,         -- percent to darken the bg color in darkroom side windows
   min_columns = 130,           -- minimum number of columns for the main/center window
@@ -24,8 +27,10 @@ local default_options = {
   --- @type vim.wo
   --- @diagnostic disable: missing-fields
   wo = {
-    winbar = false,                                                -- do not show winbar
-    winhighlight = "Normal:DarkRoomNormal,NormalNC:DarkRoomNormal" -- window highlight used by darkroom
+    -- do not show winbar
+    winbar = false,
+    -- window highlight used by darkroom
+    winhighlight = "Normal:DarkRoomNormal,NormalNC:DarkRoomNormal,EndOfBuffer:DarkRoomNormal"
   },
   -- setup edgy.nvim
   -- set as false to configure edgy yourself
@@ -36,11 +41,7 @@ local options
 -- Local state
 local is_initialized = false
 
--- Helper functions
-local function is_active()
-  local darkroom_windows = M.get_darkroom_windows()
-  return #darkroom_windows >= 2
-end
+-- private functions
 
 -- check if a window is a darkroom window
 local function is_darkroom_window(window)
@@ -72,17 +73,8 @@ local function is_darkroom_window(window)
   return false
 end
 
--- return a window number for the position
-local function get_dest_window(position)
-  if position == 'left' then
-    return 1
-  else -- right
-    return vim.fn.winnr('$')
-  end
-end
-
 -- Return a list of window numbers filtered by type
-function M.get_darkroom_windows()
+local function get_darkroom_windows()
   local windows = {}
   for i = 1, vim.fn.winnr('$') do
     table.insert(windows, i)
@@ -98,12 +90,23 @@ function M.get_darkroom_windows()
   return result
 end
 
-function M.get_darkroom_width()
-  return math.floor((vim.o.columns - options.min_columns) / 2)
+-- return true if darkroom is active
+local function is_active()
+  local darkroom_windows = get_darkroom_windows()
+  return #darkroom_windows >= 2
+end
+
+-- return a window number for the position
+local function get_dest_window(position)
+  if position == 'left' then
+    return 1
+  else -- right
+    return vim.fn.winnr('$')
+  end
 end
 
 -- Darken a hex color
-function M.darken_color(hex, percent)
+local function darken_color(hex, percent)
   local r = tonumber(string.sub(hex, 2, 3), 16)
   local g = tonumber(string.sub(hex, 4, 5), 16)
   local b = tonumber(string.sub(hex, 6, 7), 16)
@@ -116,9 +119,9 @@ function M.darken_color(hex, percent)
   return string.format("#%02x%02x%02x", r, g, b)
 end
 
-function M.get_darker_bg()
+local function get_darker_bg()
   local current_bg = vim.fn.synIDattr(vim.fn.hlID('Normal'), 'bg#')
-  return M.darken_color(current_bg, options.darken_percent)
+  return darken_color(current_bg, options.darken_percent)
 end
 
 -- Set window background
@@ -143,7 +146,55 @@ local function split_window(position)
   vim.api.nvim_set_option_value("filetype", filetype, { scope = 'local', buf = buf })
 end
 
--- Toggle darkroom to use a smaller viewport
+--  return edgy options used for darkroom windows
+--- @return Edgy.Config
+local function edgy_options()
+  return {
+    animate = { enabled = false },
+    left = {
+      {
+        ft = options.left.filetype,
+        size = { width = M.get_darkroom_width },
+        wo = options.wo
+      },
+      -- Add additional filetypes for left side
+      unpack(vim.tbl_map(function(ft)
+        return {
+          ft = ft,
+          size = { width = M.get_darkroom_width },
+          wo = options.wo
+        }
+      end, options.left.additional_filetypes or {})),
+    },
+    right = {
+      {
+        ft = options.right.filetype,
+        size = { width = M.get_darkroom_width },
+        wo = options.wo
+      },
+      -- Add additional filetypes for right side
+      unpack(vim.tbl_map(function(ft)
+        return {
+          ft = ft,
+          size = { width = M.get_darkroom_width },
+          wo = options.wo
+        }
+      end, options.right.additional_filetypes or {})),
+    },
+  }
+end
+
+-- public module methods
+
+--- Calculates the width to be used for darkroom side windows
+--- Based on the total columns available and the minimum columns setting for the main window
+--- @return number -- The calculated width for darkroom windows
+function M.get_darkroom_width()
+  return math.floor((vim.o.columns - options.min_columns) / 2)
+end
+
+--- Toggles darkroom mode on and off
+--- Creates left and right side darkroom windows if not active, or closes them if active
 function M.toggle()
   -- make only window if darkroom is in use
   if is_active() then
@@ -160,7 +211,10 @@ function M.toggle()
   end
 end
 
--- Runs a command on the specified darkroom window
+--- Runs a command on the specified darkroom window
+--- @param position string The position of the darkroom window ('left' or 'right')
+--- @param command string The vim command to execute in the darkroom window
+--- @param replace boolean (optional) If true, replaces the existing window; if false, uses the existing window or creates a new one
 function M.exec(position, command, replace)
   replace = replace or false
   local dest_window = get_dest_window(position)
@@ -209,44 +263,9 @@ function M.exec(position, command, replace)
   end
 end
 
---  return edgy options used for darkroom windows
---- @return Edgy.Config
-function M.edgy_options()
-  return {
-    animate = { enabled = false },
-    left = {
-      {
-        ft = options.left.filetype,
-        size = { width = M.get_darkroom_width },
-        wo = options.wo
-      },
-      -- Add additional filetypes for left side
-      unpack(vim.tbl_map(function(ft)
-        return {
-          ft = ft,
-          size = { width = M.get_darkroom_width },
-          wo = options.wo
-        }
-      end, options.left.additional_filetypes or {})),
-    },
-    right = {
-      {
-        ft = options.right.filetype,
-        size = { width = M.get_darkroom_width },
-        wo = options.wo
-      },
-      -- Add additional filetypes for right side
-      unpack(vim.tbl_map(function(ft)
-        return {
-          ft = ft,
-          size = { width = M.get_darkroom_width },
-          wo = options.wo
-        }
-      end, options.right.additional_filetypes or {})),
-    },
-  }
-end
-
+--- Initializes the darkroom plugin with the given options
+--- Sets up commands, highlights, and optional edgy.nvim integration
+--- @param opts DarkRoomOptions Configuration options to override defaults
 function M.setup(opts)
   -- Merge user config with defaults
   opts = opts or {}
@@ -257,7 +276,7 @@ function M.setup(opts)
   end
 
   -- Set up highlight group
-  vim.api.nvim_set_hl(0, "DarkRoomNormal", { bg = M.get_darker_bg() })
+  vim.api.nvim_set_hl(0, "DarkRoomNormal", { bg = get_darker_bg() })
 
   -- Create commands
   vim.api.nvim_create_user_command('DarkRoomToggle', function()
@@ -287,7 +306,7 @@ function M.setup(opts)
 
   -- setup edgy.nvim
   if options.setup_edgy then
-    edgy.setup(M.edgy_options())
+    edgy.setup(edgy_options())
   end
 end
 

@@ -77,8 +77,10 @@ behavior. Default values are shown below.
     
     -- Window options used in darkroom left/right windows
     wo = {
-      winbar = false,                                                -- do not show winbar
-      winhighlight = "Normal:DarkRoomNormal,NormalNC:DarkRoomNormal" -- window highlight used by darkroom
+      -- do not show winbar
+      winbar = false,
+      -- window highlight used by darkroom
+      winhighlight = "Normal:DarkRoomNormal,NormalNC:DarkRoomNormal,EndOfBuffer:DarkRoomNormal"
     },
     
     -- Setup edgy.nvim automatically
@@ -103,6 +105,10 @@ If you prefer to configure edgy.nvim yourself, set `setup_edgy = false` in your 
       {
         ft = "darkroomleft",
         size = { width = function() return require('darkroom').get_darkroom_width() end },
+        wo = {
+          winbar = false,
+          winhighlight = "Normal:DarkRoomNormal,NormalNC:DarkRoomNormal,EndOfBuffer:DarkRoomNormal"
+        },
         -- your edgy options...
       },
       -- Other left windows...
@@ -112,6 +118,10 @@ If you prefer to configure edgy.nvim yourself, set `setup_edgy = false` in your 
       {
         ft = "darkroomright", 
         size = { width = function() return require('darkroom').get_darkroom_width() end },
+        wo = {
+          winbar = false,
+          winhighlight = "Normal:DarkRoomNormal,NormalNC:DarkRoomNormal,EndOfBuffer:DarkRoomNormal"
+        },
         -- your edgy options...
       },
       -- Other right windows...

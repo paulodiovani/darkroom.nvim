@@ -130,6 +130,10 @@ require('edgy').setup({
     {
       ft = "darkroomleft",
       size = { width = function() return require('darkroom').get_darkroom_width() end },
+      wo = {
+        winbar = false,
+        winhighlight = "Normal:DarkRoomNormal,NormalNC:DarkRoomNormal,EndOfBuffer:DarkRoomNormal"
+      },
       -- your edgy options...
     },
     -- Other left windows...
@@ -139,6 +143,10 @@ require('edgy').setup({
     {
       ft = "darkroomright",
       size = { width = function() return require('darkroom').get_darkroom_width() end },
+      wo = {
+        winbar = false,
+        winhighlight = "Normal:DarkRoomNormal,NormalNC:DarkRoomNormal,EndOfBuffer:DarkRoomNormal"
+      },
       -- your edgy options...
     },
     -- Other right windows...
